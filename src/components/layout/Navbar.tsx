@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Leaf, Menu, X, User, Trophy, BookOpen, Home, Award } from "lucide-react";
+import { Leaf, Menu, X, User, Trophy, BookOpen, Home, Award, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/", label: "Home", icon: Home },
   { href: "/modules", label: "Modules", icon: BookOpen },
+  { href: "/challenges", label: "Daily", icon: Calendar },
   { href: "/achievements", label: "Badges", icon: Award },
-  { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
+  { href: "/leaderboard", label: "Ranks", icon: Trophy },
 ];
 
 const Navbar = () => {
