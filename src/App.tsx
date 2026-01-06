@@ -10,6 +10,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 const Index = lazy(() => import("./pages/Index"));
 const Modules = lazy(() => import("./pages/Modules"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
+const Quiz = lazy(() => import("./pages/Quiz"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/modules" element={<Modules />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/quiz/:moduleId" element={<Quiz />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
