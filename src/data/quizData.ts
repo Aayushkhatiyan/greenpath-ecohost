@@ -221,6 +221,207 @@ export const quizData: ModuleQuiz[] = [
         explanation: "Modern dishwashers use less water than hand washing, especially when fully loaded."
       }
     ]
+  },
+  {
+    moduleId: 5,
+    title: "Green Home Quiz",
+    description: "Transform your living space sustainably",
+    xpReward: 250,
+    passingScore: 70,
+    questions: [
+      {
+        id: 1,
+        question: "What is the most effective way to improve home energy efficiency?",
+        options: ["Smart thermostat", "Proper insulation", "Solar panels", "Energy-efficient appliances"],
+        correctAnswer: 1,
+        explanation: "Proper insulation prevents heat loss/gain and can reduce energy bills by up to 20%."
+      },
+      {
+        id: 2,
+        question: "Which indoor plants are best for air purification?",
+        options: ["Cacti", "Snake plants and pothos", "Orchids", "Succulents"],
+        correctAnswer: 1,
+        explanation: "Snake plants and pothos are excellent at removing toxins and producing oxygen."
+      },
+      {
+        id: 3,
+        question: "What is VOC and why should you avoid it?",
+        options: [
+          "A type of energy rating",
+          "Volatile Organic Compounds found in paints that harm air quality",
+          "A sustainable building material",
+          "A water filtration method"
+        ],
+        correctAnswer: 1,
+        explanation: "VOCs are harmful chemicals that off-gas from paints, furniture, and cleaners. Choose low-VOC products."
+      },
+      {
+        id: 4,
+        question: "Which window treatment is most energy-efficient?",
+        options: ["Sheer curtains", "Cellular/honeycomb shades", "Venetian blinds", "No window coverings"],
+        correctAnswer: 1,
+        explanation: "Cellular shades trap air in pockets, providing excellent insulation year-round."
+      },
+      {
+        id: 5,
+        question: "What percentage of home water use typically goes to outdoor irrigation?",
+        options: ["10%", "20%", "30-50%", "5%"],
+        correctAnswer: 2,
+        explanation: "Outdoor watering uses 30-50% of household water. Consider drought-resistant landscaping."
+      }
+    ]
+  },
+  {
+    moduleId: 6,
+    title: "Eco Transportation Quiz",
+    description: "Sustainable ways to get around",
+    xpReward: 150,
+    passingScore: 70,
+    questions: [
+      {
+        id: 1,
+        question: "Which mode of transportation has the lowest carbon footprint per passenger mile?",
+        options: ["Electric car", "Bus", "Bicycle", "Train"],
+        correctAnswer: 2,
+        explanation: "Bicycles produce zero direct emissions and have minimal manufacturing impact."
+      },
+      {
+        id: 2,
+        question: "At what speed do most cars achieve optimal fuel efficiency?",
+        options: ["25-35 mph", "45-65 mph", "70-80 mph", "As fast as possible"],
+        correctAnswer: 1,
+        explanation: "Most vehicles achieve best fuel economy between 45-65 mph. Efficiency drops significantly above 65 mph."
+      },
+      {
+        id: 3,
+        question: "How much CO2 can you save annually by working from home 2 days a week?",
+        options: ["50 pounds", "200 pounds", "500-1000 pounds", "2000+ pounds"],
+        correctAnswer: 2,
+        explanation: "Reducing commuting by 40% can save 500-1000+ pounds of CO2 annually depending on distance."
+      },
+      {
+        id: 4,
+        question: "What is 'trip chaining'?",
+        options: [
+          "Linking multiple errands into one trip",
+          "Taking multiple vehicles",
+          "Carpooling with strangers",
+          "Using GPS navigation"
+        ],
+        correctAnswer: 0,
+        explanation: "Trip chaining combines errands to reduce total miles driven and cold starts."
+      },
+      {
+        id: 5,
+        question: "Which driving habit wastes the most fuel?",
+        options: ["Using AC on hot days", "Aggressive acceleration and braking", "Driving with windows down", "Using cruise control"],
+        correctAnswer: 1,
+        explanation: "Aggressive driving can lower fuel economy by 15-30% on highways and 10-40% in traffic."
+      }
+    ]
+  },
+  {
+    moduleId: 7,
+    title: "Sustainable Diet Quiz",
+    description: "Eat well for you and the planet",
+    xpReward: 200,
+    passingScore: 70,
+    questions: [
+      {
+        id: 1,
+        question: "Which food has the highest carbon footprint per kilogram?",
+        options: ["Chicken", "Beef", "Pork", "Fish"],
+        correctAnswer: 1,
+        explanation: "Beef produces 60+ kg CO2 per kg, far more than other proteins due to methane and land use."
+      },
+      {
+        id: 2,
+        question: "What percentage of global greenhouse gas emissions come from food systems?",
+        options: ["5%", "15%", "25-30%", "50%"],
+        correctAnswer: 2,
+        explanation: "Food systems account for 25-30% of global emissions including production, transport, and waste."
+      },
+      {
+        id: 3,
+        question: "Which practice reduces food waste most effectively?",
+        options: [
+          "Buying in bulk always",
+          "Meal planning and proper storage",
+          "Only buying canned goods",
+          "Eating out more often"
+        ],
+        correctAnswer: 1,
+        explanation: "Meal planning prevents overbuying, and proper storage extends food freshness."
+      },
+      {
+        id: 4,
+        question: "What does 'eating seasonally' help reduce?",
+        options: ["Food taste", "Transportation emissions and energy for storage", "Nutritional value", "Meal variety"],
+        correctAnswer: 1,
+        explanation: "Seasonal produce requires less transportation and energy-intensive greenhouse growing or cold storage."
+      },
+      {
+        id: 5,
+        question: "How much of global food production is wasted each year?",
+        options: ["5%", "10%", "One-third", "Half"],
+        correctAnswer: 2,
+        explanation: "About 1/3 of all food produced globally is lost or wasted, equaling 1.3 billion tons annually."
+      }
+    ]
+  },
+  {
+    moduleId: 8,
+    title: "Zero Waste Living Quiz",
+    description: "Master the art of waste-free living",
+    xpReward: 300,
+    passingScore: 70,
+    questions: [
+      {
+        id: 1,
+        question: "What are the '5 Rs' of zero waste in order of priority?",
+        options: [
+          "Recycle, Reduce, Reuse, Rot, Refuse",
+          "Refuse, Reduce, Reuse, Recycle, Rot",
+          "Reduce, Refuse, Recycle, Reuse, Rot",
+          "Reuse, Reduce, Refuse, Rot, Recycle"
+        ],
+        correctAnswer: 1,
+        explanation: "Refuse what you don't need, Reduce what you do, Reuse, Recycle, and Rot (compost) the rest."
+      },
+      {
+        id: 2,
+        question: "How long does a plastic bottle take to decompose?",
+        options: ["10 years", "50 years", "450+ years", "1000 years"],
+        correctAnswer: 2,
+        explanation: "Plastic bottles take 450+ years to decompose, and even then they become microplastics."
+      },
+      {
+        id: 3,
+        question: "What is a 'circular economy'?",
+        options: [
+          "An economy based on circles",
+          "A system where resources are reused and recycled indefinitely",
+          "A type of stock market",
+          "Local-only purchasing"
+        ],
+        correctAnswer: 1,
+        explanation: "A circular economy eliminates waste by keeping materials in use through reuse, repair, and recycling."
+      },
+      {
+        id: 4,
+        question: "Which bathroom swap has the biggest environmental impact?",
+        options: ["Bamboo toothbrush", "Shampoo bars", "Safety razor instead of disposable", "All have similar impact"],
+        correctAnswer: 2,
+        explanation: "Safety razors eliminate billions of disposable razors from landfills and last decades."
+      },
+      {
+        id: 5,
+        question: "What percentage of textile waste could be recycled or reused?",
+        options: ["25%", "50%", "75%", "95%"],
+        correctAnswer: 3,
+        explanation: "Up to 95% of textiles can be recycled or reused, yet most end up in landfills."
+      }
+    ]
   }
 ];
 
