@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { 
   Leaf, Recycle, Zap, ShoppingBag, Droplets, Home, 
-  Car, Utensils, Lock, CheckCircle2, Clock, ArrowRight 
+  Car, Utensils, Lock, CheckCircle2, Clock, ArrowRight, PlayCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { cn } from "@/lib/utils";
-
+import { getQuizByModuleId } from "@/data/quizData";
 const modules = [
   {
     id: 1,
@@ -187,10 +187,18 @@ interface ModuleCardProps {
 }
 
 const ModuleCard = ({ module }: ModuleCardProps) => {
+  const navigate = useNavigate();
   const Icon = module.icon;
   const isLocked = module.status === "locked";
   const isCompleted = module.status === "completed";
   const isInProgress = module.status === "in-progress";
+  const hasQuiz = !!getQuizByModuleId(module.id);
+
+  const handleStartQuiz = () => {
+    if (!isLocked && hasQuiz) {
+      navigate(`/quiz/${module.id}`);
+    }
+  };
 
   return (
     <div
@@ -251,8 +259,17 @@ const ModuleCard = ({ module }: ModuleCardProps) => {
         <span className="font-medium gradient-text">+{module.xp} XP</span>
       </div>
 
+      {/* Quiz Badge */}
+      {hasQuiz && !isLocked && (
+        <div className="flex items-center gap-2 text-xs text-violet mb-4 bg-violet/10 rounded-lg px-3 py-2">
+          <PlayCircle className="h-4 w-4" />
+          <span>Quiz available</span>
+        </div>
+      )}
+
       {/* Action */}
       <Button
+        onClick={handleStartQuiz}
         className={cn(
           "w-full",
           isLocked && "opacity-50 cursor-not-allowed",
@@ -260,20 +277,30 @@ const ModuleCard = ({ module }: ModuleCardProps) => {
             ? "bg-mint/10 text-mint hover:bg-mint/20"
             : isInProgress
             ? "bg-gradient-cosmic"
+            : hasQuiz
+            ? "bg-gradient-cosmic hover:opacity-90"
             : "bg-muted hover:bg-muted/80"
         )}
         disabled={isLocked}
       >
         {isCompleted ? (
-          "Review"
+          <>
+            <PlayCircle className="mr-2 h-4 w-4" />
+            Retake Quiz
+          </>
         ) : isInProgress ? (
           <>
-            Continue <ArrowRight className="ml-2 h-4 w-4" />
+            Continue Quiz <ArrowRight className="ml-2 h-4 w-4" />
           </>
         ) : isLocked ? (
           "Locked"
+        ) : hasQuiz ? (
+          <>
+            <PlayCircle className="mr-2 h-4 w-4" />
+            Start Quiz
+          </>
         ) : (
-          "Start Module"
+          "Coming Soon"
         )}
       </Button>
     </div>
