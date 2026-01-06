@@ -12,6 +12,7 @@ const Modules = lazy(() => import("./pages/Modules"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const Quiz = lazy(() => import("./pages/Quiz"));
 const Achievements = lazy(() => import("./pages/Achievements"));
+const DailyChallenges = lazy(() => import("./pages/DailyChallenges"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/quiz/:moduleId" element={<Quiz />} />
             <Route path="/achievements" element={<Achievements />} />
+            <Route path="/challenges" element={<DailyChallenges />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
