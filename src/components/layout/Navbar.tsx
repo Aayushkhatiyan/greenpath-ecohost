@@ -1,8 +1,15 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Leaf, Menu, X, User, Trophy, BookOpen, Home, Award, Calendar } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Leaf, Menu, X, User, Trophy, BookOpen, Home, Award, Calendar, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navLinks = [
   { href: "/", label: "Home", icon: Home },
@@ -15,6 +22,13 @@ const navLinks = [
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50">
@@ -59,13 +73,38 @@ const Navbar = () => {
 
             {/* Auth Button */}
             <div className="hidden md:flex items-center gap-3">
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                Sign In
-              </Button>
-              <Button className="bg-gradient-cosmic hover:opacity-90 transition-opacity glow-mint">
-                <User className="h-4 w-4 mr-2" />
-                Get Started
-              </Button>
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-mint/20 flex items-center justify-center">
+                        <User className="h-4 w-4 text-mint" />
+                      </div>
+                      <span className="text-sm font-medium max-w-[120px] truncate">
+                        {user.email?.split('@')[0]}
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <>
+                  <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+                    <Link to="/auth">Sign In</Link>
+                  </Button>
+                  <Button className="bg-gradient-cosmic hover:opacity-90 transition-opacity glow-mint" asChild>
+                    <Link to="/auth">
+                      <User className="h-4 w-4 mr-2" />
+                      Get Started
+                    </Link>
+                  </Button>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -108,13 +147,37 @@ const Navbar = () => {
               );
             })}
             <div className="pt-4 border-t border-border/50 space-y-2">
-              <Button variant="ghost" className="w-full justify-start">
-                Sign In
-              </Button>
-              <Button className="w-full bg-gradient-cosmic">
-                <User className="h-4 w-4 mr-2" />
-                Get Started
-              </Button>
+              {user ? (
+                <>
+                  <div className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground">
+                    <User className="h-4 w-4" />
+                    {user.email}
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-destructive"
+                    onClick={() => {
+                      handleSignOut();
+                      setIsOpen(false);
+                    }}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" className="w-full justify-start" asChild>
+                    <Link to="/auth" onClick={() => setIsOpen(false)}>Sign In</Link>
+                  </Button>
+                  <Button className="w-full bg-gradient-cosmic" asChild>
+                    <Link to="/auth" onClick={() => setIsOpen(false)}>
+                      <User className="h-4 w-4 mr-2" />
+                      Get Started
+                    </Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

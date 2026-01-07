@@ -14,7 +14,117 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          current_streak: number
+          id: string
+          longest_streak: number
+          modules_completed: number
+          quizzes_completed: number
+          total_xp: number
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          current_streak?: number
+          id?: string
+          longest_streak?: number
+          modules_completed?: number
+          quizzes_completed?: number
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          current_streak?: number
+          id?: string
+          longest_streak?: number
+          modules_completed?: number
+          quizzes_completed?: number
+          total_xp?: number
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          id?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_daily_challenges: {
+        Row: {
+          challenge_id: string
+          completed_date: string
+          id: string
+          user_id: string
+          xp_earned: number
+        }
+        Insert: {
+          challenge_id: string
+          completed_date?: string
+          id?: string
+          user_id: string
+          xp_earned?: number
+        }
+        Update: {
+          challenge_id?: string
+          completed_date?: string
+          id?: string
+          user_id?: string
+          xp_earned?: number
+        }
+        Relationships: []
+      }
+      user_quiz_progress: {
+        Row: {
+          completed_at: string
+          id: string
+          quiz_id: string
+          score: number
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          quiz_id: string
+          score: number
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          quiz_id?: string
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
