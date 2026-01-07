@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Leaf, Menu, X, User, Trophy, BookOpen, Home, Award, Calendar, LogOut } from "lucide-react";
+import { Leaf, Menu, X, User, Trophy, BookOpen, Home, Award, Calendar, LogOut, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,7 +23,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, userRole } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -86,12 +86,22 @@ const Navbar = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem asChild className="cursor-pointer">
-                      <Link to="/profile">
-                        <User className="h-4 w-4 mr-2" />
-                        My Profile
-                      </Link>
-                    </DropdownMenuItem>
+                    {userRole === 'faculty' && (
+                      <DropdownMenuItem asChild className="cursor-pointer">
+                        <Link to="/faculty">
+                          <GraduationCap className="h-4 w-4 mr-2" />
+                          Faculty Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    {userRole === 'student' && (
+                      <DropdownMenuItem asChild className="cursor-pointer">
+                        <Link to="/profile">
+                          <User className="h-4 w-4 mr-2" />
+                          My Profile
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
                       <LogOut className="h-4 w-4 mr-2" />
                       Sign Out

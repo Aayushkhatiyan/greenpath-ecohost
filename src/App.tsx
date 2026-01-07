@@ -16,6 +16,7 @@ const Achievements = lazy(() => import("./pages/Achievements"));
 const DailyChallenges = lazy(() => import("./pages/DailyChallenges"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Profile = lazy(() => import("./pages/Profile"));
+const FacultyDashboard = lazy(() => import("./pages/FacultyDashboard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/challenges" element={<DailyChallenges />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/faculty" element={<FacultyDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
