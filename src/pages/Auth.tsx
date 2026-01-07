@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { Leaf, Mail, Lock, User } from 'lucide-react';
+import { Leaf, Mail, Lock, User, GraduationCap, BookOpen } from 'lucide-react';
 import { z } from 'zod';
 
 const emailSchema = z.string().email('Please enter a valid email address');
@@ -18,6 +20,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [role, setRole] = useState<'student' | 'faculty'>('student');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; username?: string }>({});
   
@@ -26,9 +29,22 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
+    const checkUserRole = async () => {
+      if (user) {
+        const { data } = await supabase.rpc('has_role', { 
+          _user_id: user.id, 
+          _role: 'faculty' 
+        });
+        
+        if (data === true) {
+          navigate('/faculty');
+        } else {
+          navigate('/');
+        }
+      }
+    };
+    
+    checkUserRole();
   }, [user, navigate]);
 
   const validateForm = (isSignUp: boolean) => {
@@ -84,7 +100,7 @@ const Auth = () => {
     if (!validateForm(true)) return;
     
     setIsLoading(true);
-    const { error } = await signUp(email, password, username || undefined);
+    const { error } = await signUp(email, password, username || undefined, role);
     setIsLoading(false);
 
     if (error) {
@@ -168,6 +184,35 @@ const Auth = () => {
             
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="space-y-3">
+                  <Label>I am a</Label>
+                  <RadioGroup
+                    value={role}
+                    onValueChange={(value) => setRole(value as 'student' | 'faculty')}
+                    className="grid grid-cols-2 gap-4"
+                  >
+                    <Label
+                      htmlFor="student"
+                      className={`flex flex-col items-center gap-2 p-4 border rounded-lg cursor-pointer transition-colors ${
+                        role === 'student' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <RadioGroupItem value="student" id="student" className="sr-only" />
+                      <GraduationCap className={`h-6 w-6 ${role === 'student' ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <span className={`text-sm font-medium ${role === 'student' ? 'text-primary' : ''}`}>Student</span>
+                    </Label>
+                    <Label
+                      htmlFor="faculty"
+                      className={`flex flex-col items-center gap-2 p-4 border rounded-lg cursor-pointer transition-colors ${
+                        role === 'faculty' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <RadioGroupItem value="faculty" id="faculty" className="sr-only" />
+                      <BookOpen className={`h-6 w-6 ${role === 'faculty' ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <span className={`text-sm font-medium ${role === 'faculty' ? 'text-primary' : ''}`}>Faculty</span>
+                    </Label>
+                  </RadioGroup>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-username">Username (optional)</Label>
                   <div className="relative">
