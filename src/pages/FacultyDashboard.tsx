@@ -10,10 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Users, Trophy, Flame, BookOpen, Award, Search, TrendingUp, Target } from 'lucide-react';
+import { Users, Trophy, Flame, BookOpen, Award, Search, TrendingUp, Target, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { achievements } from '@/data/achievementData';
 import { quizData } from '@/data/quizData';
 import { dailyChallenges } from '@/data/challengeData';
+import { toast } from 'sonner';
 
 interface StudentProfile {
   id: string;
@@ -153,6 +155,101 @@ const FacultyDashboard = () => {
     ? students.find(s => s.user_id === selectedStudent)
     : null;
 
+  const exportToCSV = () => {
+    const headers = ['Username', 'Total XP', 'Current Streak', 'Longest Streak', 'Quizzes Completed', 'Badges Earned', 'Challenges Completed', 'Join Date'];
+    
+    const rows = students.map(student => {
+      const studentAchievements = getStudentAchievements(student.user_id);
+      const studentQuizzes = getStudentQuizzes(student.user_id);
+      const studentChallenges = getStudentChallenges(student.user_id);
+      
+      return [
+        student.username || 'Anonymous',
+        student.total_xp,
+        student.current_streak,
+        student.longest_streak,
+        studentQuizzes.length,
+        studentAchievements.length,
+        studentChallenges.length,
+        new Date(student.created_at).toLocaleDateString()
+      ];
+    });
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `student_data_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('Student data exported successfully!');
+  };
+
+  const exportDetailedCSV = () => {
+    const headers = ['Username', 'Activity Type', 'Activity Name', 'Score/XP', 'Date'];
+    const rows: (string | number)[][] = [];
+
+    students.forEach(student => {
+      const username = student.username || 'Anonymous';
+      
+      // Add quiz progress
+      getStudentQuizzes(student.user_id).forEach(quiz => {
+        rows.push([
+          username,
+          'Quiz',
+          getQuizName(quiz.quiz_id),
+          `${quiz.score}%`,
+          new Date(quiz.completed_at).toLocaleDateString()
+        ]);
+      });
+
+      // Add achievements
+      getStudentAchievements(student.user_id).forEach(achievement => {
+        rows.push([
+          username,
+          'Achievement',
+          getAchievementName(achievement.achievement_id),
+          '-',
+          new Date(achievement.unlocked_at).toLocaleDateString()
+        ]);
+      });
+
+      // Add challenges
+      getStudentChallenges(student.user_id).forEach(challenge => {
+        rows.push([
+          username,
+          'Challenge',
+          getChallengeName(challenge.challenge_id),
+          `+${challenge.xp_earned} XP`,
+          new Date(challenge.completed_date).toLocaleDateString()
+        ]);
+      });
+    });
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `student_activity_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('Activity data exported successfully!');
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -236,14 +333,26 @@ const FacultyDashboard = () => {
                     <CardTitle>Student Overview</CardTitle>
                     <CardDescription>Click on a student to view detailed progress</CardDescription>
                   </div>
-                  <div className="relative w-full sm:w-64">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search students..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
+                  <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                    <div className="relative w-full sm:w-64">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search students..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={exportToCSV}>
+                        <Download className="h-4 w-4 mr-2" />
+                        Export Summary
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={exportDetailedCSV}>
+                        <Download className="h-4 w-4 mr-2" />
+                        Export Activity
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
