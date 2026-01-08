@@ -8,15 +8,19 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { getQuizByModuleId, QuizQuestion } from "@/data/quizData";
+import { getQuizByModuleId } from "@/data/quizData";
 import { cn } from "@/lib/utils";
 import confetti from "canvas-confetti";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 type QuizState = "intro" | "quiz" | "review" | "results";
 
 const Quiz = () => {
   const { moduleId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const quiz = getQuizByModuleId(Number(moduleId));
 
   const [state, setState] = useState<QuizState>("intro");
@@ -24,6 +28,7 @@ const Quiz = () => {
   const [selectedAnswers, setSelectedAnswers] = useState<(number | null)[]>([]);
   const [showExplanation, setShowExplanation] = useState(false);
   const [score, setScore] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (quiz) {
@@ -70,16 +75,60 @@ const Quiz = () => {
     }
   };
 
-  const calculateResults = () => {
+  const saveQuizProgress = async (correctCount: number) => {
+    if (!user) return;
+    
+    setIsSaving(true);
+    try {
+      const scorePercentage = Math.round((correctCount / quiz!.questions.length) * 100);
+      
+      const { error } = await supabase
+        .from("user_quiz_progress")
+        .insert({
+          user_id: user.id,
+          quiz_id: String(moduleId),
+          score: scorePercentage
+        });
+      
+      if (error) throw error;
+      
+      // Update profile XP and quizzes_completed
+      const xpToAdd = scorePercentage >= quiz!.passingScore ? quiz!.xpReward : Math.round(quiz!.xpReward * 0.25);
+      
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("total_xp, quizzes_completed")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      if (profile) {
+        await supabase
+          .from("profiles")
+          .update({
+            total_xp: profile.total_xp + xpToAdd,
+            quizzes_completed: profile.quizzes_completed + 1
+          })
+          .eq("user_id", user.id);
+      }
+      
+      toast.success("Quiz progress saved!");
+    } catch (error) {
+      console.error("Failed to save quiz progress:", error);
+      toast.error("Failed to save progress");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const calculateResults = async () => {
     const correctCount = selectedAnswers.filter(
-      (answer, index) => answer === quiz.questions[index].correctAnswer
+      (answer, index) => answer === quiz!.questions[index].correctAnswer
     ).length;
     setScore(correctCount);
     setState("results");
 
-    const percentage = (correctCount / quiz.questions.length) * 100;
-    if (percentage >= quiz.passingScore) {
-      // Celebration!
+    const percentage = (correctCount / quiz!.questions.length) * 100;
+    if (percentage >= quiz!.passingScore) {
       confetti({
         particleCount: 100,
         spread: 70,
@@ -87,6 +136,9 @@ const Quiz = () => {
         colors: ["#2dd4bf", "#8b5cf6", "#10b981"]
       });
     }
+    
+    // Save progress to database
+    await saveQuizProgress(correctCount);
   };
 
   const handleRestart = () => {
