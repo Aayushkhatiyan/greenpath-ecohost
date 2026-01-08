@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,12 +10,16 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Users, Trophy, Flame, BookOpen, Award, Search, TrendingUp, Target, Download } from 'lucide-react';
+import { Users, Trophy, Flame, BookOpen, Award, Search, TrendingUp, Target, Download, CalendarIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { achievements } from '@/data/achievementData';
 import { quizData } from '@/data/quizData';
 import { dailyChallenges } from '@/data/challengeData';
 import { toast } from 'sonner';
+import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface StudentProfile {
   id: string;
@@ -63,6 +67,8 @@ const FacultyDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isFaculty, setIsFaculty] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     const checkFacultyRole = async () => {
@@ -128,19 +134,43 @@ const FacultyDashboard = () => {
     student.user_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Filter activity data by date range
+  const isInDateRange = (dateStr: string) => {
+    if (!startDate && !endDate) return true;
+    const date = new Date(dateStr);
+    const start = startDate ? startOfDay(startDate) : new Date(0);
+    const end = endDate ? endOfDay(endDate) : new Date();
+    return isWithinInterval(date, { start, end });
+  };
+
+  const filteredQuizProgress = useMemo(() => 
+    allQuizProgress.filter(q => isInDateRange(q.completed_at)),
+    [allQuizProgress, startDate, endDate]
+  );
+
+  const filteredAchievements = useMemo(() => 
+    allAchievements.filter(a => isInDateRange(a.unlocked_at)),
+    [allAchievements, startDate, endDate]
+  );
+
+  const filteredChallenges = useMemo(() => 
+    allChallenges.filter(c => isInDateRange(c.completed_date)),
+    [allChallenges, startDate, endDate]
+  );
+
   const totalXP = students.reduce((sum, s) => sum + s.total_xp, 0);
   const avgXP = students.length > 0 ? Math.round(totalXP / students.length) : 0;
-  const totalQuizzes = allQuizProgress.length;
-  const totalChallengesCompleted = allChallenges.length;
+  const totalQuizzes = filteredQuizProgress.length;
+  const totalChallengesCompleted = filteredChallenges.length;
 
   const getStudentAchievements = (userId: string) =>
-    allAchievements.filter(a => a.user_id === userId);
+    filteredAchievements.filter(a => a.user_id === userId);
 
   const getStudentQuizzes = (userId: string) =>
-    allQuizProgress.filter(q => q.user_id === userId);
+    filteredQuizProgress.filter(q => q.user_id === userId);
 
   const getStudentChallenges = (userId: string) =>
-    allChallenges.filter(c => c.user_id === userId);
+    filteredChallenges.filter(c => c.user_id === userId);
 
   const getAchievementName = (achievementId: string) =>
     achievements.find(a => a.id === achievementId)?.name || achievementId;
@@ -150,6 +180,11 @@ const FacultyDashboard = () => {
 
   const getChallengeName = (challengeId: string) =>
     dailyChallenges.find(c => c.id === challengeId)?.title || challengeId;
+
+  const clearDateFilters = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+  };
 
   const selectedStudentData = selectedStudent
     ? students.find(s => s.user_id === selectedStudent)
@@ -255,9 +290,70 @@ const FacultyDashboard = () => {
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Faculty Dashboard</h1>
-          <p className="text-muted-foreground">Monitor student progress and performance</p>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Faculty Dashboard</h1>
+            <p className="text-muted-foreground">Monitor student progress and performance</p>
+          </div>
+          
+          {/* Date Range Filters */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-[140px] justify-start text-left font-normal",
+                    !startDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, "MMM d, yyyy") : "Start date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={setStartDate}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+            
+            <span className="text-muted-foreground">to</span>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-[140px] justify-start text-left font-normal",
+                    !endDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {endDate ? format(endDate, "MMM d, yyyy") : "End date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={endDate}
+                  onSelect={setEndDate}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+            
+            {(startDate || endDate) && (
+              <Button variant="ghost" size="icon" onClick={clearDateFilters}>
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Stats Overview */}
