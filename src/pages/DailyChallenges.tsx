@@ -15,6 +15,9 @@ import {
 } from "@/data/challengeData";
 import { cn } from "@/lib/utils";
 import confetti from "canvas-confetti";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const STORAGE_KEY = "greenpath_daily_challenges";
 
@@ -25,50 +28,123 @@ interface ChallengeState {
 }
 
 const DailyChallenges = () => {
+  const { user } = useAuth();
   const [challenges] = useState<DailyChallenge[]>(() => getTodaysChallenges(3));
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [bonusClaimed, setBonusClaimed] = useState(false);
-  const [streak, setStreak] = useState(5); // Mock streak
+  const [streak, setStreak] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   const today = new Date().toISOString().split("T")[0];
 
-  // Load state from localStorage
+  // Load state from database and localStorage
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const state: ChallengeState = JSON.parse(saved);
-      if (state.date === today) {
-        setCompletedIds(state.completed);
-        setBonusClaimed(state.claimed);
+    const loadData = async () => {
+      if (user) {
+        // Fetch completed challenges from database
+        const { data: dbChallenges } = await supabase
+          .from("user_daily_challenges")
+          .select("challenge_id")
+          .eq("user_id", user.id)
+          .eq("completed_date", today);
+        
+        if (dbChallenges) {
+          setCompletedIds(dbChallenges.map(c => c.challenge_id));
+        }
+
+        // Fetch streak from profile
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("current_streak")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        
+        if (profile) {
+          setStreak(profile.current_streak);
+        }
+      } else {
+        // Fallback to localStorage for non-logged-in users
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const state: ChallengeState = JSON.parse(saved);
+          if (state.date === today) {
+            setCompletedIds(state.completed);
+            setBonusClaimed(state.claimed);
+          }
+        }
       }
-    }
-  }, [today]);
-
-  // Save state to localStorage
-  useEffect(() => {
-    const state: ChallengeState = {
-      date: today,
-      completed: completedIds,
-      claimed: bonusClaimed
+      setIsLoading(false);
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [completedIds, bonusClaimed, today]);
 
-  const handleComplete = (challengeId: string) => {
-    if (!completedIds.includes(challengeId)) {
-      setCompletedIds([...completedIds, challengeId]);
-      
-      // Small celebration
-      confetti({
-        particleCount: 30,
-        spread: 50,
-        origin: { y: 0.7 },
-        colors: ["#2dd4bf", "#8b5cf6"]
-      });
+    loadData();
+  }, [user, today]);
+
+  // Save state to localStorage for non-logged-in users
+  useEffect(() => {
+    if (!user) {
+      const state: ChallengeState = {
+        date: today,
+        completed: completedIds,
+        claimed: bonusClaimed
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+  }, [completedIds, bonusClaimed, today, user]);
+
+  const handleComplete = async (challengeId: string) => {
+    if (completedIds.includes(challengeId)) return;
+    
+    const challenge = challenges.find(c => c.id === challengeId);
+    if (!challenge) return;
+
+    // Optimistically update UI
+    setCompletedIds([...completedIds, challengeId]);
+    
+    // Small celebration
+    confetti({
+      particleCount: 30,
+      spread: 50,
+      origin: { y: 0.7 },
+      colors: ["#2dd4bf", "#8b5cf6"]
+    });
+
+    // Save to database if logged in
+    if (user) {
+      try {
+        const { error } = await supabase
+          .from("user_daily_challenges")
+          .insert({
+            user_id: user.id,
+            challenge_id: challengeId,
+            xp_earned: challenge.xpReward,
+            completed_date: today
+          });
+
+        if (error) throw error;
+
+        // Update profile XP
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("total_xp")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (profile) {
+          await supabase
+            .from("profiles")
+            .update({ total_xp: profile.total_xp + challenge.xpReward })
+            .eq("user_id", user.id);
+        }
+      } catch (error) {
+        console.error("Failed to save challenge:", error);
+        toast.error("Failed to save progress");
+        // Revert optimistic update
+        setCompletedIds(prev => prev.filter(id => id !== challengeId));
+      }
     }
   };
 
-  const handleClaimBonus = () => {
+  const handleClaimBonus = async () => {
     if (allCompleted && !bonusClaimed) {
       setBonusClaimed(true);
       
@@ -79,6 +155,35 @@ const DailyChallenges = () => {
         origin: { y: 0.6 },
         colors: ["#2dd4bf", "#8b5cf6", "#fbbf24"]
       });
+
+      // Award bonus XP if logged in
+      if (user) {
+        try {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("total_xp, current_streak, longest_streak")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          if (profile) {
+            const newStreak = profile.current_streak + 1;
+            await supabase
+              .from("profiles")
+              .update({
+                total_xp: profile.total_xp + bonusXp,
+                current_streak: newStreak,
+                longest_streak: Math.max(profile.longest_streak, newStreak)
+              })
+              .eq("user_id", user.id);
+            
+            setStreak(newStreak);
+            toast.success(`Bonus claimed! +${bonusXp} XP`);
+          }
+        } catch (error) {
+          console.error("Failed to claim bonus:", error);
+          toast.error("Failed to claim bonus");
+        }
+      }
     }
   };
 
