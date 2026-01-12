@@ -10,7 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Users, Trophy, Flame, BookOpen, Award, Search, TrendingUp, Target, Download, CalendarIcon, X } from 'lucide-react';
+import { Users, Trophy, Flame, BookOpen, Award, Search, TrendingUp, Target, Download, CalendarIcon, X, BarChart3 } from 'lucide-react';
+import ProgressCharts from '@/components/faculty/ProgressCharts';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -418,6 +419,10 @@ const FacultyDashboard = () => {
         <Tabs defaultValue="students" className="space-y-6">
           <TabsList>
             <TabsTrigger value="students">All Students</TabsTrigger>
+            <TabsTrigger value="analytics">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Analytics
+            </TabsTrigger>
             <TabsTrigger value="details" disabled={!selectedStudent}>Student Details</TabsTrigger>
           </TabsList>
 
@@ -510,6 +515,15 @@ const FacultyDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <ProgressCharts
+              quizProgress={filteredQuizProgress}
+              challenges={filteredChallenges}
+              achievements={filteredAchievements}
+              students={students}
+            />
           </TabsContent>
 
           <TabsContent value="details">
