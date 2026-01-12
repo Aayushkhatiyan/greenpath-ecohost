@@ -10,8 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Users, Trophy, Flame, BookOpen, Award, Search, TrendingUp, Target, Download, CalendarIcon, X, BarChart3 } from 'lucide-react';
+import { Users, Trophy, Flame, BookOpen, Award, Search, TrendingUp, Target, Download, CalendarIcon, X, BarChart3, GitCompare } from 'lucide-react';
 import ProgressCharts from '@/components/faculty/ProgressCharts';
+import StudentComparison from '@/components/faculty/StudentComparison';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -70,6 +71,23 @@ const FacultyDashboard = () => {
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [selectedForComparison, setSelectedForComparison] = useState<string[]>([]);
+
+  const handleToggleStudentComparison = (userId: string) => {
+    setSelectedForComparison(prev => {
+      if (prev.includes(userId)) {
+        return prev.filter(id => id !== userId);
+      }
+      if (prev.length >= 5) {
+        return prev;
+      }
+      return [...prev, userId];
+    });
+  };
+
+  const handleClearComparison = () => {
+    setSelectedForComparison([]);
+  };
 
   useEffect(() => {
     const checkFacultyRole = async () => {
@@ -423,6 +441,15 @@ const FacultyDashboard = () => {
               <BarChart3 className="h-4 w-4 mr-2" />
               Analytics
             </TabsTrigger>
+            <TabsTrigger value="compare">
+              <GitCompare className="h-4 w-4 mr-2" />
+              Compare
+              {selectedForComparison.length > 0 && (
+                <Badge variant="secondary" className="ml-2">
+                  {selectedForComparison.length}
+                </Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="details" disabled={!selectedStudent}>Student Details</TabsTrigger>
           </TabsList>
 
@@ -523,6 +550,18 @@ const FacultyDashboard = () => {
               challenges={filteredChallenges}
               achievements={filteredAchievements}
               students={students}
+            />
+          </TabsContent>
+
+          <TabsContent value="compare">
+            <StudentComparison
+              students={students}
+              quizProgress={filteredQuizProgress}
+              challenges={filteredChallenges}
+              achievements={filteredAchievements}
+              selectedForComparison={selectedForComparison}
+              onToggleStudent={handleToggleStudentComparison}
+              onClearSelection={handleClearComparison}
             />
           </TabsContent>
 
