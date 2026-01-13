@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      learning_goals: {
+        Row: {
+          created_at: string
+          created_by: string
+          current_value: number
+          deadline: string | null
+          description: string | null
+          goal_type: string
+          id: string
+          status: string
+          student_id: string
+          target_value: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          current_value?: number
+          deadline?: string | null
+          description?: string | null
+          goal_type: string
+          id?: string
+          status?: string
+          student_id: string
+          target_value: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          current_value?: number
+          deadline?: string | null
+          description?: string | null
+          goal_type?: string
+          id?: string
+          status?: string
+          student_id?: string
+          target_value?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

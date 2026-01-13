@@ -13,6 +13,7 @@ import {
   TrendingUp, Star, Target, Zap 
 } from 'lucide-react';
 import { achievements } from '@/data/achievementData';
+import StudentGoals from '@/components/student/StudentGoals';
 
 interface ProfileData {
   username: string | null;
@@ -289,6 +290,17 @@ const Profile = () => {
               )}
             </CardContent>
           </Card>
+        </div>
+
+        {/* Learning Goals Section */}
+        <div className="mt-6">
+          <StudentGoals
+            totalXp={profile?.total_xp || 0}
+            currentStreak={profile?.current_streak || 0}
+            quizzesCompleted={profile?.quizzes_completed || 0}
+            modulesCompleted={profile?.modules_completed || 0}
+            challengesCompleted={recentChallenges.length}
+          />
         </div>
 
         {/* XP Milestones */}
