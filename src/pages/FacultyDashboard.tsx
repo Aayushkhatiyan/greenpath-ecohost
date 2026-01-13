@@ -90,40 +90,40 @@ const FacultyDashboard = () => {
   };
 
   useEffect(() => {
-    const checkFacultyRole = async () => {
+    const checkFacultyAndFetchData = async () => {
       if (!user) return;
       
-      const { data } = await supabase.rpc('has_role', { 
+      const { data: isFacultyRole } = await supabase.rpc('has_role', { 
         _user_id: user.id, 
         _role: 'faculty' 
       });
       
-      setIsFaculty(data === true);
-      
-      if (data !== true) {
+      if (isFacultyRole !== true) {
         navigate('/');
+        return;
       }
-    };
-
-    if (user) {
-      checkFacultyRole();
-    }
-  }, [user, navigate]);
-
-  useEffect(() => {
-    const fetchAllData = async () => {
-      if (!isFaculty) return;
       
-      setLoading(true);
+      setIsFaculty(true);
       
-      const [profilesRes, achievementsRes, quizRes, challengesRes] = await Promise.all([
+      // Fetch all data including user roles to filter out faculty
+      const [profilesRes, achievementsRes, quizRes, challengesRes, rolesRes] = await Promise.all([
         supabase.from('profiles').select('*').order('total_xp', { ascending: false }),
         supabase.from('user_achievements').select('*'),
         supabase.from('user_quiz_progress').select('*'),
-        supabase.from('user_daily_challenges').select('*')
+        supabase.from('user_daily_challenges').select('*'),
+        supabase.from('user_roles').select('user_id, role')
       ]);
 
-      if (profilesRes.data) setStudents(profilesRes.data);
+      // Get faculty user IDs to filter them out
+      const facultyUserIds = new Set(
+        rolesRes.data?.filter(r => r.role === 'faculty').map(r => r.user_id) || []
+      );
+
+      // Filter out faculty from profiles - only show students
+      if (profilesRes.data) {
+        const studentsOnly = profilesRes.data.filter(p => !facultyUserIds.has(p.user_id));
+        setStudents(studentsOnly);
+      }
       if (achievementsRes.data) setAllAchievements(achievementsRes.data);
       if (quizRes.data) setAllQuizProgress(quizRes.data);
       if (challengesRes.data) setAllChallenges(challengesRes.data);
@@ -131,10 +131,8 @@ const FacultyDashboard = () => {
       setLoading(false);
     };
 
-    if (isFaculty) {
-      fetchAllData();
-    }
-  }, [isFaculty]);
+    checkFacultyAndFetchData();
+  }, [user, navigate]);
 
   if (authLoading || loading) {
     return (
