@@ -134,6 +134,37 @@ const FacultyDashboard = () => {
     checkFacultyAndFetchData();
   }, [user, navigate]);
 
+  // Filter activity data by date range - must be before early returns (Rules of Hooks)
+  const filteredQuizProgress = useMemo(() => {
+    if (!startDate && !endDate) return allQuizProgress;
+    return allQuizProgress.filter(q => {
+      const date = new Date(q.completed_at);
+      const start = startDate ? startOfDay(startDate) : new Date(0);
+      const end = endDate ? endOfDay(endDate) : new Date();
+      return isWithinInterval(date, { start, end });
+    });
+  }, [allQuizProgress, startDate, endDate]);
+
+  const filteredAchievements = useMemo(() => {
+    if (!startDate && !endDate) return allAchievements;
+    return allAchievements.filter(a => {
+      const date = new Date(a.unlocked_at);
+      const start = startDate ? startOfDay(startDate) : new Date(0);
+      const end = endDate ? endOfDay(endDate) : new Date();
+      return isWithinInterval(date, { start, end });
+    });
+  }, [allAchievements, startDate, endDate]);
+
+  const filteredChallenges = useMemo(() => {
+    if (!startDate && !endDate) return allChallenges;
+    return allChallenges.filter(c => {
+      const date = new Date(c.completed_date);
+      const start = startDate ? startOfDay(startDate) : new Date(0);
+      const end = endDate ? endOfDay(endDate) : new Date();
+      return isWithinInterval(date, { start, end });
+    });
+  }, [allChallenges, startDate, endDate]);
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -149,30 +180,6 @@ const FacultyDashboard = () => {
   const filteredStudents = students.filter(student =>
     student.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.user_id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Filter activity data by date range
-  const isInDateRange = (dateStr: string) => {
-    if (!startDate && !endDate) return true;
-    const date = new Date(dateStr);
-    const start = startDate ? startOfDay(startDate) : new Date(0);
-    const end = endDate ? endOfDay(endDate) : new Date();
-    return isWithinInterval(date, { start, end });
-  };
-
-  const filteredQuizProgress = useMemo(() => 
-    allQuizProgress.filter(q => isInDateRange(q.completed_at)),
-    [allQuizProgress, startDate, endDate]
-  );
-
-  const filteredAchievements = useMemo(() => 
-    allAchievements.filter(a => isInDateRange(a.unlocked_at)),
-    [allAchievements, startDate, endDate]
-  );
-
-  const filteredChallenges = useMemo(() => 
-    allChallenges.filter(c => isInDateRange(c.completed_date)),
-    [allChallenges, startDate, endDate]
   );
 
   const totalXP = students.reduce((sum, s) => sum + s.total_xp, 0);
