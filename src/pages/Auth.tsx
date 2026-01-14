@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { Leaf, Mail, Lock, User, GraduationCap, BookOpen } from 'lucide-react';
+import { Leaf, Mail, Lock, User, GraduationCap, BookOpen, Shield } from 'lucide-react';
 import { z } from 'zod';
 
 const emailSchema = z.string().email('Please enter a valid email address');
@@ -23,20 +23,42 @@ const Auth = () => {
   const [role, setRole] = useState<'student' | 'faculty'>('student');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; username?: string }>({});
+  const [activeTab, setActiveTab] = useState('signin');
   
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Clear form when switching tabs
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setEmail('');
+    setPassword('');
+    setUsername('');
+    setRole('student');
+    setErrors({});
+  };
+
   useEffect(() => {
     const checkUserRole = async () => {
       if (user) {
-        const { data } = await supabase.rpc('has_role', { 
+        // Check for admin first
+        const { data: isAdmin } = await supabase.rpc('has_role', { 
+          _user_id: user.id, 
+          _role: 'admin' 
+        });
+        
+        if (isAdmin === true) {
+          navigate('/admin');
+          return;
+        }
+        
+        const { data: isFaculty } = await supabase.rpc('has_role', { 
           _user_id: user.id, 
           _role: 'faculty' 
         });
         
-        if (data === true) {
+        if (isFaculty === true) {
           navigate('/faculty');
         } else {
           navigate('/');
@@ -88,6 +110,9 @@ const Auth = () => {
         variant: 'destructive',
       });
     } else {
+      // Clear form on success
+      setEmail('');
+      setPassword('');
       toast({
         title: 'Welcome back!',
         description: 'You have successfully signed in.',
@@ -114,6 +139,11 @@ const Auth = () => {
         variant: 'destructive',
       });
     } else {
+      // Clear form on success
+      setEmail('');
+      setPassword('');
+      setUsername('');
+      setRole('student');
       toast({
         title: 'Account created!',
         description: 'Welcome to EcoLearn! Start your sustainability journey.',
@@ -136,7 +166,7 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
