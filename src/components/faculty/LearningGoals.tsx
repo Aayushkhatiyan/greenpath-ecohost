@@ -159,7 +159,7 @@ const LearningGoals: React.FC<LearningGoalsProps> = ({ students, quizProgress, c
         resetForm();
       }
     } else {
-      const { error } = await supabase
+      const { data: goalData, error } = await supabase
         .from('learning_goals')
         .insert({
           student_id: selectedStudent,
@@ -171,13 +171,24 @@ const LearningGoals: React.FC<LearningGoalsProps> = ({ students, quizProgress, c
           deadline: deadline ? format(deadline, 'yyyy-MM-dd') : null,
           status,
           created_by: user?.id
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         toast.error('Failed to create goal');
         console.error(error);
       } else {
-        toast.success('Goal created successfully!');
+        // Send notification to the student
+        await supabase.from('notifications').insert({
+          user_id: selectedStudent,
+          title: 'New Learning Goal Assigned',
+          message: `Your teacher has set a new goal for you: "${title}". Target: ${targetValue} ${goalTypeConfig[goalType]?.unit}${deadline ? ` by ${format(deadline, 'PPP')}` : ''}.`,
+          type: 'goal',
+          related_id: goalData?.id
+        });
+
+        toast.success('Goal created and student notified!');
         fetchGoals();
         setDialogOpen(false);
         resetForm();

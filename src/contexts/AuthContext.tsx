@@ -9,7 +9,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, username?: string, role?: 'student' | 'faculty') => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
-  userRole: 'student' | 'faculty' | null;
+  userRole: 'student' | 'faculty' | 'admin' | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,7 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<'student' | 'faculty' | null>(null);
+  const [userRole, setUserRole] = useState<'student' | 'faculty' | 'admin' | null>(null);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -63,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserRole = async (userId: string) => {
     const { data } = await supabase.rpc('get_user_role', { _user_id: userId });
-    setUserRole(data as 'student' | 'faculty' | null);
+    setUserRole(data as 'student' | 'faculty' | 'admin' | null);
   };
 
   const signUp = async (email: string, password: string, username?: string, role: 'student' | 'faculty' = 'student') => {

@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      faculty_modules: {
+        Row: {
+          assigned_at: string
+          faculty_id: string
+          id: string
+          module_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          faculty_id: string
+          id?: string
+          module_id: string
+        }
+        Update: {
+          assigned_at?: string
+          faculty_id?: string
+          id?: string
+          module_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faculty_modules_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      faculty_students: {
+        Row: {
+          assigned_at: string
+          faculty_id: string
+          id: string
+          student_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          faculty_id: string
+          id?: string
+          student_id: string
+        }
+        Update: {
+          assigned_at?: string
+          faculty_id?: string
+          id?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
       learning_goals: {
         Row: {
           created_at: string
@@ -59,6 +109,75 @@ export type Database = {
         }
         Relationships: []
       }
+      modules: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          difficulty: string | null
+          id: string
+          name: string
+          total_lessons: number | null
+          updated_at: string
+          xp_reward: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          difficulty?: string | null
+          id?: string
+          name: string
+          total_lessons?: number | null
+          updated_at?: string
+          xp_reward?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          difficulty?: string | null
+          id?: string
+          name?: string
+          total_lessons?: number | null
+          updated_at?: string
+          xp_reward?: number | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean | null
+          related_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean | null
+          related_id?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean | null
+          related_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -100,6 +219,50 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      student_module_progress: {
+        Row: {
+          completed_at: string | null
+          id: string
+          lessons_completed: number | null
+          module_id: string
+          progress_percentage: number | null
+          started_at: string | null
+          status: string | null
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          lessons_completed?: number | null
+          module_id: string
+          progress_percentage?: number | null
+          started_at?: string | null
+          status?: string | null
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          lessons_completed?: number | null
+          module_id?: string
+          progress_percentage?: number | null
+          started_at?: string | null
+          status?: string | null
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_module_progress_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_achievements: {
         Row: {

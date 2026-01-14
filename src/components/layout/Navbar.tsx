@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Leaf, Menu, X, User, Trophy, BookOpen, Home, Award, Calendar, LogOut, GraduationCap } from "lucide-react";
+import { Leaf, Menu, X, User, Trophy, BookOpen, Home, Award, Calendar, LogOut, GraduationCap, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import NotificationBell from "@/components/student/NotificationBell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -74,40 +75,51 @@ const Navbar = () => {
             {/* Auth Button */}
             <div className="hidden md:flex items-center gap-3">
               {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-mint/20 flex items-center justify-center">
-                        <User className="h-4 w-4 text-mint" />
-                      </div>
-                      <span className="text-sm font-medium max-w-[120px] truncate">
-                        {user.email?.split('@')[0]}
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    {userRole === 'faculty' && (
-                      <DropdownMenuItem asChild className="cursor-pointer">
-                        <Link to="/faculty">
-                          <GraduationCap className="h-4 w-4 mr-2" />
-                          Faculty Dashboard
-                        </Link>
+                <>
+                  {userRole === 'student' && <NotificationBell />}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-full bg-mint/20 flex items-center justify-center">
+                          <User className="h-4 w-4 text-mint" />
+                        </div>
+                        <span className="text-sm font-medium max-w-[120px] truncate">
+                          {user.email?.split('@')[0]}
+                        </span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      {userRole === 'admin' && (
+                        <DropdownMenuItem asChild className="cursor-pointer">
+                          <Link to="/admin">
+                            <Shield className="h-4 w-4 mr-2" />
+                            Admin Dashboard
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      {userRole === 'faculty' && (
+                        <DropdownMenuItem asChild className="cursor-pointer">
+                          <Link to="/faculty">
+                            <GraduationCap className="h-4 w-4 mr-2" />
+                            Faculty Dashboard
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      {userRole === 'student' && (
+                        <DropdownMenuItem asChild className="cursor-pointer">
+                          <Link to="/profile">
+                            <User className="h-4 w-4 mr-2" />
+                            My Profile
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Sign Out
                       </DropdownMenuItem>
-                    )}
-                    {userRole === 'student' && (
-                      <DropdownMenuItem asChild className="cursor-pointer">
-                        <Link to="/profile">
-                          <User className="h-4 w-4 mr-2" />
-                          My Profile
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
               ) : (
                 <>
                   <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
