@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 // Lazy load pages for optimal performance
 const Index = lazy(() => import("./pages/Index"));
@@ -33,14 +34,45 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/modules" element={<Modules />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
-              <Route path="/quiz/:moduleId" element={<Quiz />} />
-              <Route path="/achievements" element={<Achievements />} />
-              <Route path="/challenges" element={<DailyChallenges />} />
+              {/* Student-only routes - faculty and admin cannot access */}
+              <Route path="/leaderboard" element={
+                <ProtectedRoute allowedRoles={['student']}>
+                  <Leaderboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/quiz/:moduleId" element={
+                <ProtectedRoute allowedRoles={['student']}>
+                  <Quiz />
+                </ProtectedRoute>
+              } />
+              <Route path="/achievements" element={
+                <ProtectedRoute allowedRoles={['student']}>
+                  <Achievements />
+                </ProtectedRoute>
+              } />
+              <Route path="/challenges" element={
+                <ProtectedRoute allowedRoles={['student']}>
+                  <DailyChallenges />
+                </ProtectedRoute>
+              } />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/faculty" element={<FacultyDashboard />} />
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/profile" element={
+                <ProtectedRoute allowedRoles={['student']}>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+              {/* Faculty-only route */}
+              <Route path="/faculty" element={
+                <ProtectedRoute allowedRoles={['faculty']}>
+                  <FacultyDashboard />
+                </ProtectedRoute>
+              } />
+              {/* Admin-only route */}
+              <Route path="/admin" element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

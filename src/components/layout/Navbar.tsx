@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Leaf, Menu, X, User, Trophy, BookOpen, Home, Award, Calendar, LogOut, GraduationCap, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const navLinks = [
+// Define navigation links for each role
+const studentNavLinks = [
   { href: "/", label: "Home", icon: Home },
   { href: "/modules", label: "Modules", icon: BookOpen },
   { href: "/challenges", label: "Daily", icon: Calendar },
@@ -20,11 +21,41 @@ const navLinks = [
   { href: "/leaderboard", label: "Ranks", icon: Trophy },
 ];
 
+const facultyNavLinks = [
+  { href: "/", label: "Home", icon: Home },
+  { href: "/faculty", label: "Dashboard", icon: GraduationCap },
+];
+
+const adminNavLinks = [
+  { href: "/", label: "Home", icon: Home },
+  { href: "/admin", label: "Dashboard", icon: Shield },
+];
+
+const publicNavLinks = [
+  { href: "/", label: "Home", icon: Home },
+  { href: "/modules", label: "Modules", icon: BookOpen },
+];
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut, userRole } = useAuth();
+
+  // Get nav links based on user role
+  const navLinks = useMemo(() => {
+    if (!user) return publicNavLinks;
+    
+    switch (userRole) {
+      case 'faculty':
+        return facultyNavLinks;
+      case 'admin':
+        return adminNavLinks;
+      case 'student':
+      default:
+        return studentNavLinks;
+    }
+  }, [user, userRole]);
 
   const handleSignOut = async () => {
     await signOut();
