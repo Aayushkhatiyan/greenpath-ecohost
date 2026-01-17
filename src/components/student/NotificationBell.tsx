@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Check, X, Target, Award, BookOpen } from 'lucide-react';
+import { Bell, Check, Target, Award, BookOpen, PartyPopper, UserPlus, Flame, FileQuestion, ClipboardCheck, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -100,12 +100,24 @@ const NotificationBell = () => {
 
   const getIcon = (type: string) => {
     switch (type) {
+      case 'welcome':
+        return <PartyPopper className="h-4 w-4 text-yellow-500" />;
+      case 'enrollment':
+        return <UserPlus className="h-4 w-4 text-blue-500" />;
       case 'goal':
         return <Target className="h-4 w-4 text-primary" />;
       case 'achievement':
         return <Award className="h-4 w-4 text-yellow-500" />;
       case 'module':
         return <BookOpen className="h-4 w-4 text-green-500" />;
+      case 'streak':
+        return <Flame className="h-4 w-4 text-orange-500" />;
+      case 'quiz':
+        return <FileQuestion className="h-4 w-4 text-purple-500" />;
+      case 'attendance':
+        return <ClipboardCheck className="h-4 w-4 text-teal-500" />;
+      case 'info':
+        return <Info className="h-4 w-4 text-blue-400" />;
       default:
         return <Bell className="h-4 w-4 text-muted-foreground" />;
     }
