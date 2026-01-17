@@ -188,6 +188,25 @@ const LearningGoals: React.FC<LearningGoalsProps> = ({ students, quizProgress, c
           related_id: goalData?.id
         });
 
+        // Get student email for notification
+        const student = students.find(s => s.user_id === selectedStudent);
+        if (student) {
+          // Send email notification via edge function
+          try {
+            await supabase.functions.invoke('send-notification-email', {
+              body: {
+                to: selectedStudent,
+                subject: 'New Learning Goal Assigned',
+                studentName: student.username || 'Student',
+                message: `Your teacher has set a new goal for you: "${title}". Target: ${targetValue} ${goalTypeConfig[goalType]?.unit}${deadline ? ` by ${format(deadline, 'PPP')}` : ''}.`,
+                type: 'goal'
+              }
+            });
+          } catch (emailError) {
+            console.error('Failed to send email notification:', emailError);
+          }
+        }
+
         toast.success('Goal created and student notified!');
         fetchGoals();
         setDialogOpen(false);
