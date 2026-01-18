@@ -55,11 +55,45 @@ const AttendanceManagement: React.FC = () => {
   useEffect(() => {
     fetchSessions();
     fetchStudents();
-  }, []);
+
+    // Subscribe to realtime updates for live attendance
+    const sessionsChannel = supabase
+      .channel('attendance_sessions_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'attendance_sessions' },
+        () => {
+          fetchSessions();
+        }
+      )
+      .subscribe();
+
+    const recordsChannel = supabase
+      .channel('attendance_records_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'attendance_records' },
+        (payload) => {
+          // Update attendance records in real-time when dialog is open
+          if (selectedSession && payload.new && (payload.new as any).session_id === selectedSession.id) {
+            setAttendanceRecords(prev => ({
+              ...prev,
+              [(payload.new as any).student_id]: (payload.new as any).status
+            }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(sessionsChannel);
+      supabase.removeChannel(recordsChannel);
+    };
+  }, [selectedSession]);
 
   const fetchSessions = async () => {
     const { data, error } = await supabase
-      .from('attendance_sessions' as any)
+      .from('attendance_sessions')
       .select('*')
       .order('session_date', { ascending: false });
 
@@ -67,7 +101,7 @@ const AttendanceManagement: React.FC = () => {
       console.error('Error fetching sessions:', error);
       toast.error('Failed to load attendance sessions');
     } else {
-      setSessions((data as unknown as AttendanceSession[]) || []);
+      setSessions(data || []);
     }
     setLoading(false);
   };
@@ -97,7 +131,7 @@ const AttendanceManagement: React.FC = () => {
 
   const fetchAttendanceForSession = async (sessionId: string) => {
     const { data, error } = await supabase
-      .from('attendance_records' as any)
+      .from('attendance_records')
       .select('*')
       .eq('session_id', sessionId);
 
@@ -107,7 +141,7 @@ const AttendanceManagement: React.FC = () => {
     }
 
     const records: Record<string, string> = {};
-    (data as unknown as AttendanceRecord[])?.forEach(record => {
+    data?.forEach(record => {
       records[record.student_id] = record.status;
     });
     return records;
@@ -117,13 +151,13 @@ const AttendanceManagement: React.FC = () => {
     if (!user || !sessionName) return;
 
     const { data, error } = await supabase
-      .from('attendance_sessions' as any)
+      .from('attendance_sessions')
       .insert({
         session_name: sessionName,
         session_date: sessionDate,
         is_active: false,
         created_by: user.id,
-      } as any)
+      })
       .select()
       .single();
 
@@ -132,7 +166,7 @@ const AttendanceManagement: React.FC = () => {
       toast.error('Failed to create session');
     } else {
       toast.success('Attendance session created!');
-      setSessions([data as unknown as AttendanceSession, ...sessions]);
+      setSessions([data, ...sessions]);
       setIsCreateDialogOpen(false);
       setSessionName('');
     }
@@ -141,7 +175,11 @@ const AttendanceManagement: React.FC = () => {
   const toggleSessionActive = async (session: AttendanceSession) => {
     const newActiveState = !session.is_active;
 
-    const updateData: any = {
+    const updateData: {
+      is_active: boolean;
+      start_time?: string;
+      end_time?: string | null;
+    } = {
       is_active: newActiveState,
     };
 
@@ -153,7 +191,7 @@ const AttendanceManagement: React.FC = () => {
     }
 
     const { error } = await supabase
-      .from('attendance_sessions' as any)
+      .from('attendance_sessions')
       .update(updateData)
       .eq('id', session.id);
 
@@ -203,8 +241,8 @@ const AttendanceManagement: React.FC = () => {
     if (existing) {
       // Update existing record
       const { error } = await supabase
-        .from('attendance_records' as any)
-        .update({ status, marked_at: new Date().toISOString() } as any)
+        .from('attendance_records')
+        .update({ status, marked_at: new Date().toISOString() })
         .eq('session_id', selectedSession.id)
         .eq('student_id', studentId);
 
@@ -216,13 +254,13 @@ const AttendanceManagement: React.FC = () => {
     } else {
       // Create new record
       const { error } = await supabase
-        .from('attendance_records' as any)
+        .from('attendance_records')
         .insert({
           session_id: selectedSession.id,
           student_id: studentId,
           status,
           marked_by: user.id,
-        } as any);
+        });
 
       if (error) {
         console.error('Error marking attendance:', error);
@@ -240,12 +278,12 @@ const AttendanceManagement: React.FC = () => {
 
     for (const student of students) {
       if (!attendanceRecords[student.user_id]) {
-        await supabase.from('attendance_records' as any).insert({
+        await supabase.from('attendance_records').insert({
           session_id: selectedSession.id,
           student_id: student.user_id,
           status: 'present',
           marked_by: user.id,
-        } as any);
+        });
       }
     }
 

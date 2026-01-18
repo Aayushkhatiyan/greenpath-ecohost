@@ -16,10 +16,12 @@ import { Plus, Edit, Trash2, BookOpen, HelpCircle, Save } from 'lucide-react';
 interface QuizQuestion {
   id: string;
   question: string;
-  options: string[];
+  options: string[] | unknown;
   correct_answer: number;
-  explanation: string;
+  explanation: string | null;
   order_index: number;
+  created_at?: string;
+  quiz_id?: string;
 }
 
 interface Quiz {
@@ -76,7 +78,7 @@ const QuizManagement: React.FC = () => {
 
   const fetchQuizzes = async () => {
     const { data, error } = await supabase
-      .from('quizzes' as any)
+      .from('quizzes')
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -84,7 +86,7 @@ const QuizManagement: React.FC = () => {
       console.error('Error fetching quizzes:', error);
       toast.error('Failed to load quizzes');
     } else {
-      setQuizzes((data as unknown as Quiz[]) || []);
+      setQuizzes(data || []);
     }
     setLoading(false);
   };
@@ -102,9 +104,9 @@ const QuizManagement: React.FC = () => {
     }
   };
 
-  const fetchQuizQuestions = async (quizId: string) => {
+  const fetchQuizQuestions = async (quizId: string): Promise<QuizQuestion[]> => {
     const { data, error } = await supabase
-      .from('quiz_questions' as any)
+      .from('quiz_questions')
       .select('*')
       .eq('quiz_id', quizId)
       .order('order_index');
@@ -114,14 +116,14 @@ const QuizManagement: React.FC = () => {
       toast.error('Failed to load questions');
       return [];
     }
-    return (data as unknown as QuizQuestion[]) || [];
+    return (data as QuizQuestion[]) || [];
   };
 
   const handleCreateQuiz = async () => {
     if (!user) return;
 
     const { data, error } = await supabase
-      .from('quizzes' as any)
+      .from('quizzes')
       .insert({
         title: formData.title,
         description: formData.description || null,
@@ -130,7 +132,7 @@ const QuizManagement: React.FC = () => {
         module_id: formData.module_id || null,
         is_published: formData.is_published,
         created_by: user.id,
-      } as any)
+      })
       .select()
       .single();
 
@@ -139,12 +141,12 @@ const QuizManagement: React.FC = () => {
       toast.error('Failed to create quiz');
     } else {
       toast.success('Quiz created successfully!');
-      setQuizzes([data as unknown as Quiz, ...quizzes]);
+      setQuizzes([data, ...quizzes]);
       setIsCreateDialogOpen(false);
       resetForm();
 
       // Send notification to all students
-      await sendQuizNotification((data as unknown as Quiz).title, (data as unknown as Quiz).description);
+      await sendQuizNotification(data.title, data.description);
     }
   };
 
@@ -152,7 +154,7 @@ const QuizManagement: React.FC = () => {
     if (!selectedQuiz) return;
 
     const { error } = await supabase
-      .from('quizzes' as any)
+      .from('quizzes')
       .update({
         title: formData.title,
         description: formData.description || null,
@@ -160,7 +162,7 @@ const QuizManagement: React.FC = () => {
         passing_score: formData.passing_score,
         module_id: formData.module_id || null,
         is_published: formData.is_published,
-      } as any)
+      })
       .eq('id', selectedQuiz.id);
 
     if (error) {
@@ -179,10 +181,10 @@ const QuizManagement: React.FC = () => {
     if (!confirm('Are you sure you want to delete this quiz?')) return;
 
     // First delete all questions
-    await supabase.from('quiz_questions' as any).delete().eq('quiz_id', quizId);
+    await supabase.from('quiz_questions').delete().eq('quiz_id', quizId);
 
     const { error } = await supabase
-      .from('quizzes' as any)
+      .from('quizzes')
       .delete()
       .eq('id', quizId);
 
@@ -219,7 +221,7 @@ const QuizManagement: React.FC = () => {
     if (!selectedQuiz || !currentQuestion.question) return;
 
     const { data, error } = await supabase
-      .from('quiz_questions' as any)
+      .from('quiz_questions')
       .insert({
         quiz_id: selectedQuiz.id,
         question: currentQuestion.question,
@@ -227,7 +229,7 @@ const QuizManagement: React.FC = () => {
         correct_answer: currentQuestion.correct_answer,
         explanation: currentQuestion.explanation,
         order_index: questions.length,
-      } as any)
+      })
       .select()
       .single();
 
@@ -236,7 +238,7 @@ const QuizManagement: React.FC = () => {
       toast.error('Failed to add question');
     } else {
       toast.success('Question added!');
-      setQuestions([...questions, data as unknown as QuizQuestion]);
+      setQuestions([...questions, data as QuizQuestion]);
       setCurrentQuestion({
         question: '',
         options: ['', '', '', ''],
@@ -248,7 +250,7 @@ const QuizManagement: React.FC = () => {
 
   const deleteQuestion = async (questionId: string) => {
     const { error } = await supabase
-      .from('quiz_questions' as any)
+      .from('quiz_questions')
       .delete()
       .eq('id', questionId);
 
