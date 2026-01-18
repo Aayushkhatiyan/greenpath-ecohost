@@ -14,6 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance_records: {
+        Row: {
+          id: string
+          marked_at: string
+          marked_by: string
+          notes: string | null
+          session_id: string
+          status: string
+          student_id: string
+        }
+        Insert: {
+          id?: string
+          marked_at?: string
+          marked_by: string
+          notes?: string | null
+          session_id: string
+          status?: string
+          student_id: string
+        }
+        Update: {
+          id?: string
+          marked_at?: string
+          marked_by?: string
+          notes?: string | null
+          session_id?: string
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_sessions: {
+        Row: {
+          created_at: string
+          created_by: string
+          end_time: string | null
+          id: string
+          is_active: boolean
+          session_date: string
+          session_name: string
+          start_time: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          end_time?: string | null
+          id?: string
+          is_active?: boolean
+          session_date?: string
+          session_name: string
+          start_time?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          end_time?: string | null
+          id?: string
+          is_active?: boolean
+          session_date?: string
+          session_name?: string
+          start_time?: string | null
+        }
+        Relationships: []
+      }
       faculty_modules: {
         Row: {
           assigned_at: string
@@ -219,6 +290,94 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      quiz_questions: {
+        Row: {
+          correct_answer: number
+          created_at: string
+          explanation: string | null
+          id: string
+          options: Json
+          order_index: number
+          question: string
+          quiz_id: string
+        }
+        Insert: {
+          correct_answer?: number
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          options?: Json
+          order_index?: number
+          question: string
+          quiz_id: string
+        }
+        Update: {
+          correct_answer?: number
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          options?: Json
+          order_index?: number
+          question?: string
+          quiz_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quizzes: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_published: boolean
+          module_id: string | null
+          passing_score: number
+          title: string
+          updated_at: string
+          xp_reward: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          module_id?: string | null
+          passing_score?: number
+          title: string
+          updated_at?: string
+          xp_reward?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          module_id?: string | null
+          passing_score?: number
+          title?: string
+          updated_at?: string
+          xp_reward?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quizzes_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       student_module_progress: {
         Row: {
