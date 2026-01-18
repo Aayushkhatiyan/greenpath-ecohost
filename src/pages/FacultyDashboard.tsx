@@ -10,12 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Users, Trophy, Flame, BookOpen, Award, Search, TrendingUp, Target, Download, CalendarIcon, X, BarChart3, GitCompare, Goal, ClipboardCheck, FileQuestion } from 'lucide-react';
+import { Users, Trophy, Flame, BookOpen, Award, Search, TrendingUp, Target, Download, CalendarIcon, X, BarChart3, GitCompare, Goal, ClipboardCheck, FileQuestion, PieChart } from 'lucide-react';
 import ProgressCharts from '@/components/faculty/ProgressCharts';
 import StudentComparison from '@/components/faculty/StudentComparison';
 import LearningGoals from '@/components/faculty/LearningGoals';
 import QuizManagement from '@/components/faculty/QuizManagement';
 import AttendanceManagement from '@/components/faculty/AttendanceManagement';
+import AttendanceAnalytics from '@/components/faculty/AttendanceAnalytics';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -457,6 +458,10 @@ const FacultyDashboard = () => {
               <ClipboardCheck className="h-4 w-4 mr-2" />
               Attendance
             </TabsTrigger>
+            <TabsTrigger value="attendance-analytics">
+              <PieChart className="h-4 w-4 mr-2" />
+              Attendance Reports
+            </TabsTrigger>
             <TabsTrigger value="analytics">
               <BarChart3 className="h-4 w-4 mr-2" />
               Analytics
@@ -587,6 +592,10 @@ const FacultyDashboard = () => {
 
           <TabsContent value="attendance">
             <AttendanceManagement />
+          </TabsContent>
+
+          <TabsContent value="attendance-analytics">
+            <AttendanceAnalytics />
           </TabsContent>
 
           <TabsContent value="compare">
