@@ -1,19 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { 
   ArrowLeft, ArrowRight, CheckCircle2, XCircle, 
-  Trophy, Leaf, Zap, RotateCcw, Home
+  Trophy, Leaf, Zap, RotateCcw, Home, PlayCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { getQuizByModuleId } from "@/data/quizData";
+import { getQuizByModuleId, quizData } from "@/data/quizData";
 import { cn } from "@/lib/utils";
 import confetti from "canvas-confetti";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+
+// Lazy load the 3D component
+const Quiz3DExplanation = lazy(() => import("@/components/quiz/Quiz3DExplanation"));
 
 type QuizState = "intro" | "quiz" | "review" | "results";
 
@@ -29,12 +32,74 @@ const Quiz = () => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [score, setScore] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [completedQuizIds, setCompletedQuizIds] = useState<number[]>([]);
+  const [nextQuiz, setNextQuiz] = useState<typeof quiz | null>(null);
 
   useEffect(() => {
     if (quiz) {
       setSelectedAnswers(new Array(quiz.questions.length).fill(null));
     }
   }, [quiz]);
+
+  // Fetch user's completed quizzes to suggest next quiz
+  useEffect(() => {
+    const fetchCompletedQuizzes = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from("user_quiz_progress")
+        .select("quiz_id")
+        .eq("user_id", user.id);
+      
+      if (data) {
+        const completedIds = data.map(p => parseInt(p.quiz_id)).filter(id => !isNaN(id));
+        setCompletedQuizIds(completedIds);
+      }
+    };
+    
+    fetchCompletedQuizzes();
+  }, [user]);
+
+  // Find next available quiz when results are shown
+  useEffect(() => {
+    if (state === "results" && quiz) {
+      const currentModuleId = quiz.moduleId;
+      const allModuleIds = quizData.map(q => q.moduleId);
+      
+      // Find next quiz that hasn't been completed or is the next in sequence
+      for (let i = currentModuleId; i <= Math.max(...allModuleIds); i++) {
+        if (i !== currentModuleId) {
+          const nextQuizCandidate = quizData.find(q => q.moduleId === i);
+          if (nextQuizCandidate) {
+            setNextQuiz(nextQuizCandidate);
+            break;
+          }
+        }
+      }
+    }
+  }, [state, quiz, completedQuizIds]);
+
+  // Real-time subscription for quiz updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('quiz-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'quizzes'
+        },
+        (payload) => {
+          console.log('Quiz update received:', payload);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   if (!quiz) {
     return (
@@ -147,6 +212,17 @@ const Quiz = () => {
     setSelectedAnswers(new Array(quiz.questions.length).fill(null));
     setShowExplanation(false);
     setScore(0);
+  };
+
+  const handleNextQuiz = () => {
+    if (nextQuiz) {
+      navigate(`/quiz/${nextQuiz.moduleId}`);
+      // Reset state for new quiz
+      setState("intro");
+      setCurrentQuestion(0);
+      setShowExplanation(false);
+      setScore(0);
+    }
   };
 
   const percentage = Math.round((score / quiz.questions.length) * 100);
@@ -279,32 +355,46 @@ const Quiz = () => {
                 </div>
               </div>
 
-              {/* Explanation */}
+              {/* 3D Explanation */}
               {showExplanation && (
-                <div className={cn(
-                  "glass rounded-xl p-4 mb-6 animate-scale-in",
-                  isCorrect ? "border border-mint/30" : "border border-destructive/30"
-                )}>
-                  <div className="flex items-start gap-3">
-                    {isCorrect ? (
-                      <div className="rounded-full bg-mint/20 p-2">
-                        <CheckCircle2 className="h-5 w-5 text-mint" />
+                <div className="mb-6 animate-scale-in">
+                  <Suspense fallback={
+                    <div className="w-full h-64 rounded-xl bg-muted/30 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-mint"></div>
+                    </div>
+                  }>
+                    <Quiz3DExplanation 
+                      isCorrect={isCorrect} 
+                      explanation={question.explanation} 
+                    />
+                  </Suspense>
+                  
+                  {/* Text explanation below 3D */}
+                  <div className={cn(
+                    "glass rounded-xl p-4 mt-4",
+                    isCorrect ? "border border-mint/30" : "border border-destructive/30"
+                  )}>
+                    <div className="flex items-start gap-3">
+                      {isCorrect ? (
+                        <div className="rounded-full bg-mint/20 p-2">
+                          <CheckCircle2 className="h-5 w-5 text-mint" />
+                        </div>
+                      ) : (
+                        <div className="rounded-full bg-destructive/20 p-2">
+                          <XCircle className="h-5 w-5 text-destructive" />
+                        </div>
+                      )}
+                      <div>
+                        <p className={cn(
+                          "font-semibold mb-1",
+                          isCorrect ? "text-mint" : "text-destructive"
+                        )}>
+                          {isCorrect ? "Correct!" : "Not quite right"}
+                        </p>
+                        <p className="text-muted-foreground text-sm">
+                          {question.explanation}
+                        </p>
                       </div>
-                    ) : (
-                      <div className="rounded-full bg-destructive/20 p-2">
-                        <XCircle className="h-5 w-5 text-destructive" />
-                      </div>
-                    )}
-                    <div>
-                      <p className={cn(
-                        "font-semibold mb-1",
-                        isCorrect ? "text-mint" : "text-destructive"
-                      )}>
-                        {isCorrect ? "Correct!" : "Not quite right"}
-                      </p>
-                      <p className="text-muted-foreground text-sm">
-                        {question.explanation}
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -408,6 +498,25 @@ const Quiz = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Next Quiz Suggestion */}
+              {nextQuiz && (
+                <div className="glass rounded-2xl p-6 mb-8 max-w-md mx-auto border border-mint/30">
+                  <h3 className="font-display text-lg font-semibold mb-2 gradient-text">
+                    Ready for your next challenge?
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    Continue learning with: <strong>{nextQuiz.title}</strong>
+                  </p>
+                  <Button 
+                    onClick={handleNextQuiz}
+                    className="bg-gradient-cosmic hover:opacity-90"
+                  >
+                    <PlayCircle className="mr-2 h-4 w-4" />
+                    Start Next Quiz
+                  </Button>
+                </div>
+              )}
 
               {/* Actions */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center">

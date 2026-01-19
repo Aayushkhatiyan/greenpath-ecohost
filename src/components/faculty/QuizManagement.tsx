@@ -7,16 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Plus, Edit, Trash2, BookOpen, HelpCircle, Save } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface QuizQuestion {
   id: string;
   question: string;
-  options: string[] | unknown;
+  options: string[];
   correct_answer: number;
   explanation: string | null;
   order_index: number;
@@ -51,6 +52,7 @@ const QuizManagement: React.FC = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [isQuestionsDialogOpen, setIsQuestionsDialogOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Form state for new/edit quiz
   const [formData, setFormData] = useState({
@@ -116,7 +118,11 @@ const QuizManagement: React.FC = () => {
       toast.error('Failed to load questions');
       return [];
     }
-    return (data as QuizQuestion[]) || [];
+    // Ensure options is always an array
+    return (data || []).map(q => ({
+      ...q,
+      options: Array.isArray(q.options) ? q.options : []
+    })) as QuizQuestion[];
   };
 
   const handleCreateQuiz = async () => {
@@ -381,6 +387,15 @@ const QuizManagement: React.FC = () => {
     return <div className="text-center py-8">Loading quizzes...</div>;
   }
 
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-destructive mb-4">{error}</p>
+        <Button onClick={() => { setError(null); fetchQuizzes(); }}>Retry</Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -389,32 +404,32 @@ const QuizManagement: React.FC = () => {
           <p className="text-muted-foreground">Create and manage quizzes for your students</p>
         </div>
 
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Create Quiz
+        </Button>
+      </div>
+
+      {/* Create Quiz Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Create New Quiz</DialogTitle>
+            <DialogDescription>
+              Create a new quiz for your students. You can add questions after creating the quiz.
+            </DialogDescription>
+          </DialogHeader>
+          <QuizFormContent />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateQuiz} disabled={!formData.title}>
               Create Quiz
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Create New Quiz</DialogTitle>
-              <DialogDescription>
-                Create a new quiz for your students. You can add questions after creating the quiz.
-              </DialogDescription>
-            </DialogHeader>
-            <QuizFormContent />
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleCreateQuiz} disabled={!formData.title}>
-                Create Quiz
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader>
