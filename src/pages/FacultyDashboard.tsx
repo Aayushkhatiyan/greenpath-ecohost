@@ -17,6 +17,7 @@ import LearningGoals from '@/components/faculty/LearningGoals';
 import QuizManagement from '@/components/faculty/QuizManagement';
 import AttendanceManagement from '@/components/faculty/AttendanceManagement';
 import AttendanceAnalytics from '@/components/faculty/AttendanceAnalytics';
+import ModuleManagement from '@/components/faculty/ModuleManagement';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -450,6 +451,10 @@ const FacultyDashboard = () => {
               <Goal className="h-4 w-4 mr-2" />
               Goals
             </TabsTrigger>
+            <TabsTrigger value="modules">
+              <BookOpen className="h-4 w-4 mr-2" />
+              Modules
+            </TabsTrigger>
             <TabsTrigger value="quizzes">
               <FileQuestion className="h-4 w-4 mr-2" />
               Quizzes
@@ -584,6 +589,10 @@ const FacultyDashboard = () => {
               achievements={filteredAchievements}
               students={students}
             />
+          </TabsContent>
+
+          <TabsContent value="modules">
+            <ModuleManagement />
           </TabsContent>
 
           <TabsContent value="quizzes">
