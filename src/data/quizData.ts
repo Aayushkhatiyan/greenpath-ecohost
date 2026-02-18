@@ -13,6 +13,7 @@ export interface ModuleQuiz {
   questions: QuizQuestion[];
   xpReward: number;
   passingScore: number; // percentage needed to pass
+  timeLimitMinutes?: number | null; // optional time limit in minutes
 }
 
 export const quizData: ModuleQuiz[] = [

@@ -1,0 +1,1 @@
+ALTER TABLE public.quizzes ADD COLUMN IF NOT EXISTS time_limit_minutes INTEGER DEFAULT NULL;

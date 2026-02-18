@@ -2,7 +2,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { 
   ArrowLeft, ArrowRight, CheckCircle2, XCircle, 
-  Trophy, Leaf, Zap, RotateCcw, Home, PlayCircle
+  Trophy, Leaf, Zap, RotateCcw, Home, PlayCircle, Clock, AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -34,6 +34,8 @@ const Quiz = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [completedQuizIds, setCompletedQuizIds] = useState<number[]>([]);
   const [nextQuiz, setNextQuiz] = useState<typeof quiz | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null); // seconds
+  const [timerActive, setTimerActive] = useState(false);
 
   useEffect(() => {
     if (quiz) {
@@ -100,6 +102,26 @@ const Quiz = () => {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (!timerActive || timeRemaining === null || timeRemaining <= 0) return;
+
+    const interval = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          setTimerActive(false);
+          // Auto-submit when time runs out
+          calculateResults();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timerActive, timeRemaining === null]);
 
   if (!quiz) {
     return (
@@ -191,6 +213,7 @@ const Quiz = () => {
     ).length;
     setScore(correctCount);
     setState("results");
+    setTimerActive(false);
 
     const percentage = (correctCount / quiz!.questions.length) * 100;
     if (percentage >= quiz!.passingScore) {
@@ -212,6 +235,8 @@ const Quiz = () => {
     setSelectedAnswers(new Array(quiz.questions.length).fill(null));
     setShowExplanation(false);
     setScore(0);
+    setTimeRemaining(null);
+    setTimerActive(false);
   };
 
   const handleNextQuiz = () => {
@@ -222,6 +247,8 @@ const Quiz = () => {
       setCurrentQuestion(0);
       setShowExplanation(false);
       setScore(0);
+      setTimeRemaining(null);
+      setTimerActive(false);
     }
   };
 
@@ -250,7 +277,7 @@ const Quiz = () => {
               </p>
 
               <div className="glass rounded-2xl p-6 mb-8 max-w-md mx-auto">
-                <div className="grid grid-cols-3 gap-4 text-center">
+                <div className={cn("grid gap-4 text-center", quiz.timeLimitMinutes ? "grid-cols-4" : "grid-cols-3")}>
                   <div>
                     <div className="text-2xl font-bold gradient-text">{quiz.questions.length}</div>
                     <div className="text-sm text-muted-foreground">Questions</div>
@@ -263,6 +290,12 @@ const Quiz = () => {
                     <div className="text-2xl font-bold gradient-text">+{quiz.xpReward}</div>
                     <div className="text-sm text-muted-foreground">XP Reward</div>
                   </div>
+                  {quiz.timeLimitMinutes && (
+                    <div>
+                      <div className="text-2xl font-bold gradient-text">{quiz.timeLimitMinutes}m</div>
+                      <div className="text-sm text-muted-foreground">Time Limit</div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -273,7 +306,13 @@ const Quiz = () => {
                 </Button>
                 <Button 
                   className="bg-gradient-cosmic hover:opacity-90"
-                  onClick={() => setState("quiz")}
+                  onClick={() => {
+                    setState("quiz");
+                    if (quiz.timeLimitMinutes) {
+                      setTimeRemaining(quiz.timeLimitMinutes * 60);
+                      setTimerActive(true);
+                    }
+                  }}
                 >
                   Start Quiz
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -285,7 +324,26 @@ const Quiz = () => {
           {/* Quiz State */}
           {state === "quiz" && question && (
             <div className="animate-fade-in">
-              {/* Progress Header */}
+              {/* Timer & Progress Header */}
+              {timeRemaining !== null && timerActive && (
+                <div className={cn(
+                  "flex items-center justify-center gap-2 mb-4 py-3 px-4 rounded-xl font-mono text-lg font-bold",
+                  timeRemaining <= 30 ? "bg-destructive/15 text-destructive animate-pulse" :
+                  timeRemaining <= 60 ? "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400" :
+                  "glass gradient-text"
+                )}>
+                  {timeRemaining <= 30 ? (
+                    <AlertTriangle className="h-5 w-5" />
+                  ) : (
+                    <Clock className="h-5 w-5" />
+                  )}
+                  <span>
+                    {Math.floor(timeRemaining / 60).toString().padStart(2, '0')}:
+                    {(timeRemaining % 60).toString().padStart(2, '0')}
+                  </span>
+                </div>
+              )}
+
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground">
