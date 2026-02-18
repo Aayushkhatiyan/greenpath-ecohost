@@ -62,6 +62,7 @@ const QuizManagement: React.FC = () => {
     passing_score: 70,
     module_id: '',
     is_published: false,
+    time_limit_minutes: null as number | null,
   });
 
   // Questions form state
@@ -138,6 +139,7 @@ const QuizManagement: React.FC = () => {
         module_id: formData.module_id || null,
         is_published: formData.is_published,
         created_by: user.id,
+        time_limit_minutes: formData.time_limit_minutes,
       })
       .select()
       .single();
@@ -168,6 +170,7 @@ const QuizManagement: React.FC = () => {
         passing_score: formData.passing_score,
         module_id: formData.module_id || null,
         is_published: formData.is_published,
+        time_limit_minutes: formData.time_limit_minutes,
       })
       .eq('id', selectedQuiz.id);
 
@@ -212,6 +215,7 @@ const QuizManagement: React.FC = () => {
       passing_score: quiz.passing_score,
       module_id: quiz.module_id || '',
       is_published: quiz.is_published,
+      time_limit_minutes: (quiz as any).time_limit_minutes || null,
     });
     setIsEditDialogOpen(true);
   };
@@ -301,6 +305,7 @@ const QuizManagement: React.FC = () => {
       passing_score: 70,
       module_id: '',
       is_published: false,
+      time_limit_minutes: null,
     });
   };
 
@@ -368,6 +373,19 @@ const QuizManagement: React.FC = () => {
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="time_limit">Time Limit (minutes, leave empty for no limit)</Label>
+        <Input
+          id="time_limit"
+          type="number"
+          min={1}
+          max={180}
+          value={formData.time_limit_minutes ?? ''}
+          onChange={(e) => setFormData({ ...formData, time_limit_minutes: e.target.value ? parseInt(e.target.value) : null })}
+          placeholder="No time limit"
+        />
       </div>
 
       <div className="flex items-center space-x-2">

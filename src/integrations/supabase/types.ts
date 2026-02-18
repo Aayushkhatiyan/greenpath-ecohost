@@ -341,6 +341,7 @@ export type Database = {
           is_published: boolean
           module_id: string | null
           passing_score: number
+          time_limit_minutes: number | null
           title: string
           updated_at: string
           xp_reward: number
@@ -353,6 +354,7 @@ export type Database = {
           is_published?: boolean
           module_id?: string | null
           passing_score?: number
+          time_limit_minutes?: number | null
           title: string
           updated_at?: string
           xp_reward?: number
@@ -365,6 +367,7 @@ export type Database = {
           is_published?: boolean
           module_id?: string | null
           passing_score?: number
+          time_limit_minutes?: number | null
           title?: string
           updated_at?: string
           xp_reward?: number
