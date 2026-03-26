@@ -15,7 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        display: ['Sora', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -51,18 +51,18 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Midnight Botanic Custom Colors
+        // Obsidian Emerald Custom Colors
         void: {
-          DEFAULT: "hsl(var(--void-blue))",
-          light: "hsl(var(--void-blue-light))",
+          DEFAULT: "hsl(var(--obsidian))",
+          light: "hsl(var(--obsidian-light))",
         },
         mint: {
-          DEFAULT: "hsl(var(--neon-mint))",
-          glow: "hsl(var(--neon-mint-glow))",
+          DEFAULT: "hsl(var(--emerald))",
+          glow: "hsl(var(--emerald-glow))",
         },
         violet: {
-          DEFAULT: "hsl(var(--electric-violet))",
-          glow: "hsl(var(--electric-violet-glow))",
+          DEFAULT: "hsl(var(--gold))",
+          glow: "hsl(var(--gold-glow))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -128,9 +128,9 @@ export default {
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-cosmic": "linear-gradient(135deg, hsl(var(--neon-mint)), hsl(var(--electric-violet)))",
-        "gradient-mint": "linear-gradient(135deg, hsl(var(--neon-mint)), hsl(168 76% 35%))",
-        "gradient-violet": "linear-gradient(135deg, hsl(var(--electric-violet)), hsl(258 89% 50%))",
+        "gradient-cosmic": "linear-gradient(135deg, hsl(var(--emerald)), hsl(var(--gold)))",
+        "gradient-mint": "linear-gradient(135deg, hsl(var(--emerald)), hsl(160 84% 28%))",
+        "gradient-violet": "linear-gradient(135deg, hsl(var(--gold)), hsl(38 92% 38%))",
       },
     },
   },
